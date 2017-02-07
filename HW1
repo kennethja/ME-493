@@ -1,0 +1,193 @@
+#include "stdafx.h";
+#include "iostream";
+#include "assert.h";
+#include "string";
+#include "random";
+#include "time.h";
+#include "vector";
+#include "fstream";
+
+using namespace std;
+
+// Card Class
+
+//defining class card with constraints of the cards
+class Card {
+public:
+	   // card class descriptor variables, made public for the Test B function in Deck class
+		int number; //1 to 13
+		int suit; //1 to 4, spades, clubs, diamonds, hearts
+		string color; //"black" and "red"
+
+	   //creating the fuctions within the card class
+	   Card();
+	   Card(int,int);
+	   void setValues(int,int);
+	
+		void output();
+};
+
+Card::Card() {
+	//setting initial conditions for card fuctions
+	suit = 1;
+	number = 1;
+	color = "Black";
+}
+
+Card::Card(int n, int s) {
+	//ensure nunber and suit values are within sensible contraints of card #'s
+	assert((n >= 0) && (n <= 13));
+	assert((s >= 1) && (s <= 4));
+	number = n;
+	suit = s;
+	//if suit integer is 1 or 2 (spades and clubs) set color of card to be black, otherwise, color of the card is red (diamonds and hearts)
+	if ((suit == 1 || suit == 2)) {
+		color = "Black";
+	}
+	else {
+		color = "Red";
+		}
+
+}
+//output fuction within Card class to determine the appropriate console output for each of the 52 cards
+//cfile prints to external text file, change to cout to print to console
+	void Card::output() {
+		//if card is a numerical card output the value, if else, choose a face case
+		ofstream cfile;
+		cfile.open("card_file.txt", ios_base::app);
+		if ((number > 1) && (number < 11)) {
+			cfile << number;
+		}
+		else {
+			switch (number) {
+			case 0: cfile << "Joker"; break;
+			case 1: cfile << "Ace";  break;
+			case 11: cfile << "Jack"; break;
+			case 12: cfile << "Queen"; break;
+			case 13: cfile << "King"; break;
+			}
+		}
+		//choose the suit of the card depending on the values 1 through four provided from the Card function.
+		//this will account for a joker, represented by the (number != 0) if statement.
+		if (number != 0) {
+			cfile << " of ";
+			switch (suit) {
+			case 1: cfile << "spades"; break;
+			case 2: cfile << "clubs"; break;
+			case 3: cfile << "diamonds"; break;
+			case 4: cfile << "hearts"; break;
+			}
+		}
+		cfile << "  -" << color << "-  " << endl;
+		cfile.close();
+	}
+	//mostly useless in normal running conditions, namely used to customize the card values if needed
+	void Card::setValues(int n, int s) {
+		assert((n >= 0) && (n <= 13));
+		assert((s >= 1) && (s <= 4));
+		number = n;
+		suit = s;
+		if ((suit == 1 || suit == 2)) {
+			color = "Black";
+		}
+		else {
+			color = "Red";
+		}
+		
+	}
+
+	// Deck Class
+	// creates a "deck" that will consist of 52 "cards"
+	// used to suffle multiple decks combined with each other, simplifies the process
+	class Deck {
+		vector<Card> blackjack;
+	public:
+		Deck(int);
+		//void display(ofstream);
+		void shuffle();
+		void TestA();
+		void TestB(int);
+	};
+
+	//creates the values that are "pushed" into the blackjack vector, the first for loop goes through the entire vector, 
+	//the second and third for statement assign suit and number values.
+	Deck::Deck(int n) {
+		Card card;
+		for (int k = 0; k < n; k++)
+			for (int i = 1; i <= 4; i++) {
+				for (int j = 1; j <= 13; j++) {
+					card.setValues(j, i);
+					blackjack.push_back(card); // creates new card and places it into the vector, pushes back to continue the process
+				}
+			}
+		assert(blackjack.size() == 52 * n);
+	}
+
+	//used to test the output of black vector before shuffling
+	//void Deck::display() {
+		//for (int i = 0; i < blackjack.size(); i++) {
+			//blackjack.at(i).output();
+		//}
+
+	//}
+
+	//shuffles the values within blackjack using rand() and swap(), this could be made more accurate by running this function multiple times
+	//to force multiple shuffles
+	void Deck::shuffle() {
+			for (int i = 0; i < blackjack.size(); i++) {
+				int r = rand() % (blackjack.size() - i);
+				swap(blackjack[i], blackjack[r]);
+			}
+			for (int i = 0; i < blackjack.size(); i++) {
+				blackjack.at(i).output();
+			}
+	}
+
+	//Test A ensures that there is no duplicate cards existing after the deck is shuffled. Two looped for statments though the size of blackjack vector,
+	//and an if statement chooses one card at a time and ensures that all cards after it are different.
+	void Deck::TestA() {
+		for (int i = 0; i < blackjack.size(); i++) {
+			for (int j = i; j < blackjack.size(); j++) {
+				if (i != j) {
+					assert((blackjack.at(i).suit != blackjack.at(j).suit) || (blackjack.at(i).number != blackjack.at(j).number));
+				}
+			}
+		}
+	}
+
+	//Test B ensures that any card in n number of decks occur n times. This not only will check the first card, but will check all cards within the deck
+	//to ensure n cards.  the r constant increases as a duplicate is detected and the assert will stop the program if r is greater than n number of cards.
+    void Deck::TestB(int s) {
+	int r = 0;
+	for (int i = 0; i < blackjack.size(); i++) {
+		for (int j = 0; j < blackjack.size(); j++) {
+				if ((blackjack.at(i).suit == blackjack.at(j).suit) && (blackjack.at(i).number == blackjack.at(j).number)) {
+					r++;
+				}
+		}
+		assert(s == r);
+		r = 0;
+	}
+
+}
+
+
+//the main function initializes the custom functions, shuffle(), TestA(), and TestB().  The int n represents the number of decks and can be changed
+//as a single line of code to increase or decrease the number of decks.
+int main()
+{
+
+	int n = 2;
+	srand(time(NULL));
+	Deck Deck(n);
+	Deck.shuffle();
+
+	if (n == 1) {
+		Deck.TestA();
+	}
+	else {
+		Deck.TestB(n);
+	}
+   return 0;
+}
+
