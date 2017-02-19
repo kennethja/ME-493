@@ -28,7 +28,7 @@ public:
 	void setValues(double, double);
 	void display();
 	double gamble();
-	void TestA(vector<MAB>,int);
+	void TestA(double);
 };
 
 MAB::MAB() {
@@ -60,24 +60,12 @@ double MAB::gamble(){
 
 }
 
-void MAB::TestA(vector<MAB> temp_list, int n) {  //test A pulls the bandit manually, so many iterations to test for u convergence.
-	int count = 100;
-	int bandit = 1;
-	double drag = 0.0;
-	double test_avg = 0.0;
-	double ftest_avg = 0.0;
-	vector<double> verify;
-	for (int i = 0; i < count; i++) {
-		drag = temp_list.at(bandit).gamble();
-		cout << drag << endl;
-		verify.push_back(drag);
+void MAB::TestA(double alpha) {  //test A pulls the bandit manually, so many iterations to test for u convergence.
+	double avg = 0;
+	for (int i = 0; i < 1000; i++) {
+		avg = gamble() * alpha + avg*(1 - alpha);
 	}
-	for (int i = 0; i < count; i++) {
-		test_avg = test_avg + verify.at(i);
-	}
-	ftest_avg = test_avg / count;
-	cout << "\n" << ftest_avg;
-	assert((ftest_avg*1.1 >= temp_list.at(bandit)) && (ftest_avg*0.9 <= temp_list.at(bandit)));
+	assert(avg >= average - 1 && avg <= average + 1);
 }
 
 
@@ -87,29 +75,38 @@ void MAB::TestA(vector<MAB> temp_list, int n) {  //test A pulls the bandit manua
 class Senteince{
 	public:
 	vector<double> Q;
+	int arm_chosen = 0;
 	int good = 0;
-
-	int tries = 120;
+	int x = 0;
+	int tries = 1000;
 	int response = 0;
 	int options = 3;
 	double alpha = 0.1;
 	double epsilon = 0.1;
 	double reward = 0;
+	int **action_arr;
 
 
-	void learner();
+	void learner(bool);
 	int decide();
 	int greedy_action();
 	int rand_action();
 	void learned();
 	void action(vector<MAB>);
-	void TestB(vector<MAB>,int);
+	void TestB(int);
+	void set_up_array();
 };
 
-void Senteince::learner() { //creates the vector for each option
+void Senteince::learner(bool first) { //creates the vector for each option
 	for (int i = 0; i < options; i++) {
-		Q.push_back((double)0);
+		if (first) {
+			Q.push_back((double)0);
+		}
+		else {
+			Q[i] = 0;
+		}
 	}
+
 }
 
 int Senteince::decide() { //picks the multi-armed bandit, gets random value from that MAB = reward
@@ -129,6 +126,7 @@ int Senteince::decide() { //picks the multi-armed bandit, gets random value from
 
 int Senteince::greedy_action() { 
 	double check = 0;
+	good = 0;
 	for (int i = 0; i < options; i++)
 	{
 		
@@ -139,11 +137,12 @@ int Senteince::greedy_action() {
 			check = Q.at(i);
 		}
 	}
+
 	return good;
 }
 
 int Senteince::rand_action() {
-	int x = rand() % options;
+	x = rand() % options;
 	return x;
 }
 
@@ -162,6 +161,7 @@ void Senteince::action(vector <MAB> list1) {
 	for (int i = 0; i < tries; i++) {
 		
 		index = decide();
+		action_arr[index][i]++;
 		R = list1[index].gamble();
 		stored.push_back(R);
 		Q[index] = R * alpha + Q[index] * (1 - alpha);
@@ -170,26 +170,49 @@ void Senteince::action(vector <MAB> list1) {
 	learned();
 }
 
-void Senteince::TestB(vector<MAB> temp_list, int n) {
-	action(temp_list);
-	for (int i = 0; i < 6; i++) {
-		//assert(temp_list(good) >= temp_list(i));
+void Senteince::TestB(int index) {
+	for (int i = 0; i < options; i++) {
+		//if (!(action_arr[index][1000] >= action_arr[i][1000])) {
+			//cout << action_arr[index][1000] << " vs. " << action_arr[i][1000];
+		//}
+		assert(action_arr[index][1000] >= action_arr[i][1000]);
+	}
+	delete [] action_arr;
 	}
 	
+
+void Senteince::set_up_array() {  //creates a double pointer
+	action_arr = new int*[options]();
+	for (int i = 0; i < options; i++) {
+		action_arr[i] = new int[tries]();
+	}
 }
 
 int main()
 {
 	srand(time(NULL));
 	vector<MAB> List;
+	vector<double> List_d;
 	MAB human;
 	double number;
 	int n = 3;
 	int input;
+	bool first = true;
 	for (int i = 0; i < n; i++) {
-		human.setValues(zero_to_one * 10, zero_to_one * 2);
+		List_d.push_back(zero_to_one * 10);
+		human.setValues(List_d[List_d.size()-1], zero_to_one * 2);
 		List.push_back(human);
 	}
+
+	double greater,greater1 = 0.0;
+	int stored1 = 0;
+	for (int i = 0; i < List_d.size(); i++) {
+		if (List_d.at(stored1) < List_d.at(i)) {
+			stored1 = i;
+		}
+
+	}
+
 
 	//used to manually pull the multi-armed bandit, running this, proves the effectiveness of the gamble function
 	/*
@@ -214,10 +237,15 @@ int main()
 
 	//call class Senteince, named Luna
 	Senteince Luna;
+	Luna.set_up_array();
 
-	//run through 30 iterations of the action learner to create a learning curve out of the data
+	
 	for (int i = 0; i < 30; i++) {
-		Luna.learner();
+		Luna.learner(first);
+		if (first) {
+			first = false;
+		}
+		
 		Luna.action(List);
 	}
 
@@ -242,15 +270,26 @@ int main()
 		avg_reward.push_back(sum / Luna.options);
 	}
 
-	human.TestA(List,n);
-	Luna.TestB(List,n);
-
+	human.TestA(0.01);
+	
+	
 	ofstream cfile;
-	cfile.open("card_file.csv", ios_base::app);
+	cfile.open("learning_file.csv");
 	for (int i = 0; i < avg_reward.size(); i++) {
 		cfile << avg_reward.at(i) << endl;
-}
+	}
+	cfile.close();
 
+	cfile.open("action_curve.txt");
+	for (int i = 0; i < Luna.tries; i++) {
+		cfile << i;
+		for (int j = 0; j < Luna.options; j++) {
+			cfile << '\t' << (double)Luna.action_arr[j][i]/30;
+		}
+		cfile << endl;
+	}
+
+	cfile.close();
+	Luna.TestB(stored1);
     return 0;
 }
-
