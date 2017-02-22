@@ -25,10 +25,14 @@ public:
 	int c = 0;
 	int r = 0;
 	int curr = 0;
+	int rand_column = rand() % columns;
+	int rand_row = rand() % rows;
 
 	void set_up_array();
 	void create_grid();
 	void move();
+	void rule_of_thumb();
+	void drawing();
 };
 
 void Human::set_up_array() {  //creates a double pointer array. This will be the "grid".
@@ -45,9 +49,6 @@ void Human::set_up_array() {  //creates a double pointer array. This will be the
 }
 
 void Human::create_grid(){
-	int rand_column = rand() % columns;
-	int rand_row = rand() % rows;
-
 	pawn = grid_arr[c][r];
 	goal = grid_arr[rand_column][rand_row];
 
@@ -57,48 +58,77 @@ void Human::create_grid(){
 }
 
 void Human::move() {
+	cout << "Grid Size: " << columns << " by " << rows << endl;
 	cout << "Pawn = " << pawn << "\nGoal = " << goal << endl;
 	cout << "Instructions: " << "Use numbers 1, 2, 3, 4 for right, left, down, and up. Respectively." << endl;
 	while(pawn != goal){
 
 		cin >> movement;
 		cout << endl;
+
 	switch (movement) {
 	case 1:
 		if (c + 1 <= columns - 1) {
 			pawn = grid_arr[c++][r];
-			cout << grid_arr[c][r] << endl; 
-			cout << "Current Postion: " << pawn;
+			cout << "Current Postion: " << grid_arr[c][r] << endl;
+		}
+		else {
+			cout << "You hit a wall, choose a different move." << endl;
 		}
 		break;
 	case 2:
 		if (c - 1 >= 0) {
 			pawn = grid_arr[c--][r];
-			cout << grid_arr[c][r] << endl;
-			cout << "Current Postion: " << pawn;
+			cout << "Current Postion: " << grid_arr[c][r] << endl;
+		}
+		else {
+			cout << "You hit a wall, choose a different move." << endl;
 		}
 		break;
 	case 3:
 		if (r + 1 <= rows - 1) {
 			pawn = grid_arr[c][r++];
-			cout << grid_arr[c][r] << endl;
-			cout << "Current Postion: " << pawn;
+			cout << "Current Postion: " << grid_arr[c][r] << endl;
+		}
+		else {
+			cout << "You hit a wall, choose a different move." << endl;
 		}
 		break;
 	case 4:
 		if (r - 1 >= 0) {
 			pawn = grid_arr[c][r--];
-			cout << grid_arr[c][r] << endl;
-			cout << "Current Postion: " << pawn;
+			cout << "Current Postion: " << grid_arr[c][r] << endl;
+		}
+		else {
+			cout << "You hit a wall, choose a different move." << endl;
 		}
 		break;
 	}
 			if (pawn == goal) {
-				cout << "You have reached the goal" << endl;
+				cout << "You have reached the goal. Yay!" << endl;
 				break;
 			}
-
+		
 	}
+}
+
+void Human::rule_of_thumb() {
+	for (int i = 0; i < columns; i++) {
+		pawn = grid_arr[c][r];
+		c++;
+		if (c == rand_column) {
+			break;
+		}
+	}
+	for (int i = 0; i < rows; i++) {
+		pawn = grid_arr[c][r];
+		r++;
+		if (r == rand_row) {
+			break;
+		}
+	}
+	cout << pawn << endl;
+	cout << goal << endl;
 }
 
 int main()
@@ -107,7 +137,18 @@ int main()
 	Human Fidget;
 	Fidget.set_up_array();
 	Fidget.create_grid();
-	Fidget.move();
+	int user;
+	cout << "Enter 1 for Human Controller, Enter 2 for Rule-of-Thumb\n";
+	cin >> user;
+	cout << endl;
+	if (user == 1) {
+		Fidget.move();
+	}
+	else {
+		Fidget.rule_of_thumb();
+
+	}
+
     return 0;
 }
 
