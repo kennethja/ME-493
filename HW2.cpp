@@ -72,11 +72,33 @@ void Human::move() {
 	case 1:
 		if (c + 1 <= columns - 1) {
 			pawn = grid_arr[++c][r];
+
+			/*code for 3d graph
+			for (int i = 1; i <= columns; i++)
+			{
+				for (int j = 1; j <= rows; j++)
+				{
+					if (i == c && j == r)
+					{
+						cout << " A ";
+					}
+					else if (i == rand_column && j == rand_row)
+					{
+						cout << " F ";
+					}
+					else
+						cout << " + ";
+				}
+				cout << endl;
+			}
+			*/
+
 			cout << "Current Postion: " << c << "X" << r << endl;
 		}
 		else {
 			cout << "You hit a wall, choose a different move." << endl;
 		}
+		TestA();
 		break;
 	case 2:
 		if (c - 1 >= 0) {
@@ -86,6 +108,7 @@ void Human::move() {
 		else {
 			cout << "You hit a wall, choose a different move." << endl;
 		}
+		TestA();
 		break;
 	case 3:
 		if (r + 1 <= rows - 1) {
@@ -95,6 +118,7 @@ void Human::move() {
 		else {
 			cout << "You hit a wall, choose a different move." << endl;
 		}
+		TestA();
 		break;
 	case 4:
 		if (r - 1 >= 0) {
@@ -104,6 +128,7 @@ void Human::move() {
 		else {
 			cout << "You hit a wall, choose a different move." << endl;
 		}
+		TestA();
 		break;
 	}
 			if (pawn == goal) {
@@ -112,6 +137,13 @@ void Human::move() {
 			}
 		
 	}
+}
+
+void Human::TestA() {
+	//if (pawn != grid_arr[0][0]) {
+		//pawn = grid_arr[0][0];
+	//}
+	assert(c <= 13 && r <= 13);
 }
 
 void Human::TestB() {
@@ -142,9 +174,33 @@ void Human::TestC() {
 class Q_learner {
 public:
 	int **Q_table;
-	int dim;
+	int dimension = 30;
+	int agent = 0;
+	int col_Q = 0;
+	int row_Q = 0;
+	int reward_pos = 100;
+	int reward_neg = -1;
+	int s = 0;
+	int **actions;
 
+	void setValues();
+	void action();
+	void decide();
 };
+
+void Q_learner::setValues() {
+	cout << "The computer will now show you how cool it is.\n What size do you want the gridworld?";
+	cin >> s;
+	dimension = s = col_Q = row_Q;
+	cout << "What positive reward would you like the Q-learner to have?";
+	cin >> reward_pos;
+	cout << "What negative reward would you like the Q-learner to have?";
+	cin >> reward_neg;
+}
+
+void Q_learner::action() {
+	actions = new int[col_Q*row_Q][4]
+}
 
 int main()
 {
@@ -162,6 +218,9 @@ int main()
 	else {
 		Fidget.TestC();
 	}
-
+	
+	Q_learner Luna;
+	Luna.setValues();
     return 0;
 }
+
