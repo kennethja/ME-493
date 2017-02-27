@@ -143,7 +143,7 @@ void Human::TestA() {
 	//if (pawn != grid_arr[0][0]) {
 		//pawn = grid_arr[0][0];
 	//}
-	assert(c <= 13 && r <= 13);
+	assert(c <= 13 && r <= 13 && c >= 0 && r >= 0);
 }
 
 void Human::TestB() {
@@ -152,6 +152,7 @@ void Human::TestB() {
 }
 
 void Human::TestC() {
+	cout << "The goal was: " << rand_column << "X" << rand_row << endl;
 	for (int i = 0; i < columns; i++) {
 		pawn = grid_arr[c][r];
 		c++;
@@ -166,40 +167,9 @@ void Human::TestC() {
 			break;
 		}
 	}
-	cout << pawn << endl;
-	cout << goal << endl;
-	assert(pawn == goal);
-}
-
-class Q_learner {
-public:
-	int **Q_table;
-	int dimension = 30;
-	int agent = 0;
-	int col_Q = 0;
-	int row_Q = 0;
-	int reward_pos = 100;
-	int reward_neg = -1;
-	int s = 0;
-	int **actions;
-
-	void setValues();
-	void action();
-	void decide();
-};
-
-void Q_learner::setValues() {
-	cout << "The computer will now show you how cool it is.\n What size do you want the gridworld?";
-	cin >> s;
-	dimension = s = col_Q = row_Q;
-	cout << "What positive reward would you like the Q-learner to have?";
-	cin >> reward_pos;
-	cout << "What negative reward would you like the Q-learner to have?";
-	cin >> reward_neg;
-}
-
-void Q_learner::action() {
-	actions = new int[col_Q*row_Q][4]
+	r = r - 1; // this cancels out the 1 added onto r in the for loop, required for +1 error.
+	cout << "The pawn has reached: " << c << "X" << r << endl;
+	assert(c == rand_column && r == rand_row);
 }
 
 int main()
@@ -219,8 +189,6 @@ int main()
 		Fidget.TestC();
 	}
 	
-	Q_learner Luna;
-	Luna.setValues();
     return 0;
 }
 
