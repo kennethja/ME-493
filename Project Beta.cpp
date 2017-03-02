@@ -22,17 +22,20 @@ public:
 	int movement = 0;
 	int c = 0;
 	int r = 0;
-	int rand_column = rand() % columns;
-	int rand_row = rand() % rows;
+	int rand_column = rand() % 10;
+	int rand_row = rand() % 10;
 	int R;
+	int columns = 10;
+	int rows = 10;
+	int size = columns * rows;
 
-	void setgrid(int,int);
+	void setgrid();
 	void creategrid();
-	int update(int state,int dir);
+	int update(int,int);
 	int reward(int new_state);
 };
 
-void Grid::setgrid(int columns, int rows) {  //creates a double pointer array. This will be the "grid".
+void Grid::setgrid() {  //creates a double pointer array. This will be the "grid".
 	grid_arr = new int*[columns]();
 	int count = 0;
 	for (int i = 0; i < columns; i++) {
@@ -56,22 +59,30 @@ void Grid::creategrid() {
 
 int Grid::update(int state, int dir) {
 	if (dir = 0) {
-		pawn = grid_arr[++c][r];
+		if (c + 1 <= columns - 1) {
+			pawn = grid_arr[++c][r];
+		}
+		else if (dir = 1) {
+			if (c - 1 >= 0) {
+				pawn = grid_arr[--c][r];
+			}
+		}
+		else if (dir = 2) {
+			if (r + 1 <= rows - 1) {
+				pawn = grid_arr[c][++r];
+			}
+		}
+		else if (dir = 3) {
+			if (r - 1 >= 0) {
+				pawn = grid_arr[c][--r];
+			}
+		}
+		return pawn;
 	}
-	else if (dir = 1){
-		pawn = grid_arr[--c][r];
-	}
-	else if (dir = 2) {
-		pawn = grid_arr[c][r++];
-	}
-	else if (dir = 3) {
-		pawn = grid_arr[c][r--];
-	}
-	return pawn;
 }
 
 int Grid::reward(int new_pawn) {
-	int R = 0; //sets the default reward to zero
+	int R = -1; //sets the default reward to zero
 	if (new_pawn == goal) {
 		R = R + 100;
 	}
@@ -80,93 +91,116 @@ int Grid::reward(int new_pawn) {
 
 class Agent {
 public:
-	int **Q;
+	double **Q;
 	int alpha = 0.1;
 	int epsilon = 0.1;
 	int gamma = 0.9;
-	int num_action = 4;
 	int response = 0;
-	int curr_pos = 0;
-	double curr_R = 0;
-	int pre_pos = 0;
-	double pre_R = 0;
+	int state = 0;
+	double Reward = 0;
+	int new_state = 0;
+	double new_Reward = 0;
 	int left = 0;
 	int right = 1;
 	int up = 2;
 	int down = 3;
+	int Q_max =0
+	Grid *world;
 
+	Agent(Grid*);
 	void setQ(int); //create the 2-D array for the Q table. states X 4
-	void update_position();
-	void update_state();
-	void Q_Table(int); //stores and updates the Q values for each state
+	void update_Q(int); //stores and updates the Q values for each state
 	void action();
-	void decide();
+	int greedy_action(double *row);
+	int rand_action();
+	int decide();
+	int setQ_max();
 };
 
+Agent::Agent(Grid*grid) {
+	world = grid;
+}
+
 void Agent::setQ(int size) {  //creates a double pointer array. This will be the q_table array
-	Q = new int*[4]();
+	Q = new double*[size]();
 	int count = 0;
-	for (int i = 0; i < 4; i++) {
-		Q[i] = new int[size]();
-	}
-	for (int j = 0; j < size; j++) {
-		for (int i = 0; i < 4; i++) {
-			Q[i][j] = count++;
-		}
+	for (int i = 0; i < size; i++) {
+		Q[i] = new double[4]();
 	}
 }
 
-void Agent::Q_Table(int R) {
+int setQ_max() {
+	Q_max = Q[new_state][greedy_action(Q[new_state]));
+}
+
+void Agent::update_Q(int movement) {
+	Reward = R;
+
 
 }
 
 void Agent::action() {
-	int index;
-	int R;
-	while (pawn != goal) {
-		curr_pos = 
+	int movement;
+	int count = 0;
+
+	while (1) {
+		int i = 0;
+		movement = decide();
+		new_state = world->update(state, movement);
+		new_Reward = world->reward(new_state);
+		update_Q(movement);
+	
+
+		//break condition
 	}
 }
 
-void Agent::greedy_action() {
-	double check = 0;
-	good = 0;
-	for (int i = 0; i < 4; i++)
-	{
-
-		if (Q > check)
-		{
-
-			good = i;
-			check = Q.at(i);
-		}
-	}
-
-	return good;
-}
-
-void Agent::decide() {
+int Agent::decide() {
 	double x = (double)rand() / RAND_MAX;
 
 	if (x < epsilon) {
 
-		response = rand_action();
+		response = rand_action(); //create a random action thingy
 	}
 	else {
 
-		response = greedy_action();
+		response = greedy_action(Q[state]); //create a greedy action thingy
 	}
 
 	return response;
 }
 
+int Agent::rand_action() {
+	int x = rand() % 4;
+	return x;
+}
+
+int Agent::greedy_action(double *row) {
+	vector<int> max;
+	max.push_back(0);
+
+	for (int i = 1;i < 4; i++) {
+		if (row[max[0]] < row[i]) {
+			max.clear();
+			max.push_back(i);
+		} 
+		else if (row[max[0]] == row[i]){
+			max.push_back(i);
+		}
+	}
+	return max[rand() % max.size()];
+}
+
 int main() {
-	int columns = 10;
-	int rows = 10;
-	int size = columns * rows;
+	srand(time(NULL));
+	
 	Grid Fidget;
-	Fidget.setgrid(columns,rows)
-	Agent Luna;
+	Fidget.setgrid();
+
+	Agent Luna(&Fidget);
+	
 	
 	return 0;
 }
+
+//to call grid use : 
