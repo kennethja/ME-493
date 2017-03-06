@@ -33,6 +33,7 @@ public:
 	void creategrid();
 	int update(int,int);
 	int reward(int new_state);
+	void TestE(int,int);
 };
 
 void Grid::setgrid() {  //creates a double pointer array. This will be the "grid".
@@ -55,6 +56,9 @@ void Grid::creategrid() {
 	if (goal == pawn) {
 		goal = grid_arr[rand_column][rand_row];
 	}
+
+	cout << "The agent begins at: " << c << " X " << r << endl;
+	cout << "The goal is located at: " << rand_column << " X " << rand_row << endl;
 }
 
 int Grid::update(int state, int dir) {
@@ -78,6 +82,7 @@ int Grid::update(int state, int dir) {
 				pawn = grid_arr[c][--r];
 		}
 	}
+		cout << c << " X " << r << endl;
 		return pawn;
 }
 
@@ -85,8 +90,17 @@ int Grid::reward(int new_pawn) {
 	int R = -1; //sets the default reward to zero
 	if (new_pawn == goal) {
 		R = R + 100;
+		new_pawn = pawn = 0;
+		TestE(new_pawn,pawn); 
 	}
 	return R;
+}
+
+//ensures that the agent(new_pawn) location on the grid is reset to zero 
+//once the goal is reached in the reward function.
+void Grid::TestE(int new_pawn, int pawn) {
+	int test;
+	assert(new_pawn == pawn);
 }
 
 class Agent {
@@ -116,6 +130,9 @@ public:
 	int rand_action();
 	int decide();
 	int setQ_max();
+	void TestD(int);
+	void TestF();
+	void TestG();
 };
 
 Agent::Agent(Grid*grid) {
@@ -138,6 +155,7 @@ int Agent::setQ_max() {
 void Agent::update_Q(int movement) {
 	Q_max = setQ_max();
 	Q[state][movement] += alpha * (new_Reward + gamma*Q_max - Q[state][movement]);
+	TestD(movement);
 	state = new_state;
 }
 
@@ -150,9 +168,8 @@ void Agent::action() {
 		new_Reward = world->reward(new_state);
 		update_Q(movement);
 
-		cout << state << " X " << movement << endl;
 		if (new_state == world->goal) {
-			cout << "The computer has successfully located the goal.\n";
+			cout << "The computer has successfully located the goal. Run away!\n";
 			break;
 		}
 	}
@@ -192,6 +209,16 @@ int Agent::greedy_action(double *row) {
 		}
 	}
 	return max[rand() % max.size()];
+}
+
+//TestD is included above in the update_Q function. 
+//This assert runs on each Q value calculated and placed in the table.
+void Agent::TestD(int movement) { 
+		assert(Q[state][movement] <= 100);
+}
+
+void Agent::TestF() {
+
 }
 
 int main() {
