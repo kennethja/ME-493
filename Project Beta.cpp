@@ -31,7 +31,6 @@ public:
 
 	void setgrid();
 	void creategrid();
-	void second_state_option();
 	int update(int,int);
 	int reward(int new_state);
 };
@@ -80,10 +79,6 @@ int Grid::update(int state, int dir) {
 		}
 		return pawn;
 	}
-}
-
-void Grid::second_state_option() {
-
 }
 
 int Grid::reward(int new_pawn) {
@@ -166,11 +161,11 @@ int Agent::decide() {
 
 	if (x < epsilon) {
 
-		response = rand_action(); //create a random action thingy
+		response = rand_action();
 	}
 	else {
 
-		response = greedy_action(Q[state]); //create a greedy action thingy
+		response = greedy_action(Q[state]); // error exception thrown, this->Q was 0x1110112
 	}
 
 	return response;
