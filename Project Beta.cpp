@@ -31,6 +31,7 @@ public:
 
 	void setgrid();
 	void creategrid();
+	void second_state_option();
 	int update(int,int);
 	int reward(int new_state);
 };
@@ -81,6 +82,10 @@ int Grid::update(int state, int dir) {
 	}
 }
 
+void Grid::second_state_option() {
+
+}
+
 int Grid::reward(int new_pawn) {
 	int R = -1; //sets the default reward to zero
 	if (new_pawn == goal) {
@@ -97,14 +102,14 @@ public:
 	int gamma = 0.9;
 	int response = 0;
 	int state = 0;
-	double Reward = 0;
 	int new_state = 0;
 	double new_Reward = 0;
 	int left = 0;
 	int right = 1;
 	int up = 2;
 	int down = 3;
-	int Q_max =0
+	int Q_max = 0;
+	double Q_calc = 0.0;
 	Grid *world;
 
 	Agent(Grid*);
@@ -129,29 +134,30 @@ void Agent::setQ(int size) {  //creates a double pointer array. This will be the
 	}
 }
 
-int setQ_max() {
-	Q_max = Q[new_state][greedy_action(Q[new_state]));
+int Agent::setQ_max() {
+	Q_max = Q[new_state][greedy_action(Q[new_state])];
+	return Q_max;
 }
 
 void Agent::update_Q(int movement) {
-	Reward = R;
-
-
+	Q_max = setQ_max();
+	Q[state][movement] += alpha * (new_Reward + gamma*Q_max - Q[state][movement]);
+	new_state = state;
 }
 
 void Agent::action() {
 	int movement;
-	int count = 0;
 
 	while (1) {
-		int i = 0;
 		movement = decide();
 		new_state = world->update(state, movement);
 		new_Reward = world->reward(new_state);
 		update_Q(movement);
 	
-
-		//break condition
+		if (new_state == world->goal) {
+			cout << "The computer has successfully located the goal.\n";
+			break;
+		}
 	}
 }
 
@@ -198,9 +204,7 @@ int main() {
 	Fidget.setgrid();
 
 	Agent Luna(&Fidget);
-	
+	Luna.action();
 	
 	return 0;
 }
-
-//to call grid use : 
