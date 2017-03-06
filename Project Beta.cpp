@@ -165,7 +165,7 @@ int Agent::decide() {
 	}
 	else {
 
-		response = greedy_action(Q[state]); // error exception thrown, this->Q was 0x1110112
+		response = greedy_action(Q[state]); // error exception thrown, this->Q was 0x1110112 
 	}
 
 	return response;
