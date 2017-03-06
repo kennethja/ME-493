@@ -58,27 +58,27 @@ void Grid::creategrid() {
 }
 
 int Grid::update(int state, int dir) {
-	if (dir = 0) {
+	if (dir == 0) {
 		if (c + 1 <= columns - 1) {
 			pawn = grid_arr[++c][r];
 		}
-		else if (dir = 1) {
+	}
+		else if (dir == 1) {
 			if (c - 1 >= 0) {
 				pawn = grid_arr[--c][r];
 			}
 		}
-		else if (dir = 2) {
+		else if (dir == 2) {
 			if (r + 1 <= rows - 1) {
 				pawn = grid_arr[c][++r];
 			}
 		}
-		else if (dir = 3) {
+		else if (dir == 3) {
 			if (r - 1 >= 0) {
 				pawn = grid_arr[c][--r];
-			}
 		}
-		return pawn;
 	}
+		return pawn;
 }
 
 int Grid::reward(int new_pawn) {
@@ -138,7 +138,7 @@ int Agent::setQ_max() {
 void Agent::update_Q(int movement) {
 	Q_max = setQ_max();
 	Q[state][movement] += alpha * (new_Reward + gamma*Q_max - Q[state][movement]);
-	new_state = state;
+	state = new_state;
 }
 
 void Agent::action() {
@@ -149,7 +149,8 @@ void Agent::action() {
 		new_state = world->update(state, movement);
 		new_Reward = world->reward(new_state);
 		update_Q(movement);
-	
+
+		cout << state << " X " << movement << endl;
 		if (new_state == world->goal) {
 			cout << "The computer has successfully located the goal.\n";
 			break;
@@ -198,6 +199,7 @@ int main() {
 	
 	Grid Fidget;
 	Fidget.setgrid();
+	Fidget.creategrid();
 
 	Agent Luna(&Fidget);
 	Luna.setQ();
