@@ -92,9 +92,10 @@ int Grid::reward(int new_pawn) {
 class Agent {
 public:
 	double **Q;
-	int alpha = 0.1;
-	int epsilon = 0.1;
-	int gamma = 0.9;
+	double alpha = 0.1;
+	double epsilon = 0.1;
+	double gamma = 0.9;
+	int size = 100;
 	int response = 0;
 	int state = 0;
 	int new_state = 0;
@@ -108,7 +109,7 @@ public:
 	Grid *world;
 
 	Agent(Grid*);
-	void setQ(int); //create the 2-D array for the Q table. states X 4
+	void setQ(); //create the 2-D array for the Q table. states X 4
 	void update_Q(int); //stores and updates the Q values for each state
 	void action();
 	int greedy_action(double *row);
@@ -121,7 +122,7 @@ Agent::Agent(Grid*grid) {
 	world = grid;
 }
 
-void Agent::setQ(int size) {  //creates a double pointer array. This will be the q_table array
+void Agent::setQ() {  //creates a double pointer array. This will be the q_table array
 	Q = new double*[size]();
 	int count = 0;
 	for (int i = 0; i < size; i++) {
@@ -161,11 +162,11 @@ int Agent::decide() {
 
 	if (x < epsilon) {
 
-		response = rand_action();
+		response = rand_action(); //create a random action thingy
 	}
 	else {
 
-		response = greedy_action(Q[state]); // error exception thrown, this->Q was 0x1110112 
+		response = greedy_action(Q[state]); //create a greedy action thingy
 	}
 
 	return response;
@@ -199,6 +200,7 @@ int main() {
 	Fidget.setgrid();
 
 	Agent Luna(&Fidget);
+	Luna.setQ();
 	Luna.action();
 	
 	return 0;
