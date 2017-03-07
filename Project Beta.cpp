@@ -25,8 +25,8 @@ public:
 	int movement = 0;
 	int c = 0;
 	int r = 0;
-	int rand_column = 8;//rand() % 15;
-	int rand_row = 8;//rand() % 15;
+	int rand_column = 8; //rand() % 15;
+	int rand_row = 8; //rand() % 15;
 	int R;
 	int columns = 15;
 	int rows = 15;
