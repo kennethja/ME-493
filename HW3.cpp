@@ -17,16 +17,16 @@ using namespace std;
 class Grid {
 public:
 	int **grid_arr;
-	int columns = 13;
-	int rows = 13;
+	int columns = 15;
+	int rows = 15;
 	int pawn = 0;
 	int goal = 0;
 	int movement = 0;
 	int c = 0;
 	int r = 0;
 	int curr = 0;
-	int rand_column = rand() % columns;
-	int rand_row = rand() % rows;
+	int rand_column = 12;//rand() % columns;
+	int rand_row = 12;//rand() % rows;
 
 	void set_up_array();
 	void create_grid();
@@ -70,30 +70,54 @@ int Grid::create_walls(int pawn) {
 	return tell;
 }
 
-int Grid::update(int state, int movement) {
-		if (c < rand_column) {
-			pawn = grid_arr[r][++c];
+int Grid::update(int state, int dir) {
+	int tell = 0;
+	if (dir == 0) {
+		if (c + 1 <= columns - 1) {
+			tell = create_walls(pawn);
+			if (tell == 1) {
+				pawn = grid_arr[--c][r];
+			}
+			else {
+				pawn = grid_arr[++c][r];
+			}
 		}
-		else if (c > rand_column) {
-			pawn = grid_arr[r][--c];
-		}
-		else if (c == rand_column) {
-			cout << "Goal column has been reached." << endl;
-			
-		}
-
-		if (r < rand_row) {
-			pawn = grid_arr[++r][c];
-			
-		}
-		else if (r > rand_row) {
-			pawn = grid_arr[--r][c];
-		}
-		else if (r == rand_row) {
-			cout << "Goal row has been reached." << endl;
-			
 	}
-		return pawn;
+	else if (dir == 1) {
+		if (c - 1 >= 0) {
+			tell = create_walls(pawn);
+			if (tell == 1) {
+				pawn = grid_arr[++c][r];
+			}
+			else {
+				pawn = grid_arr[--c][r];
+			}
+		}
+	}
+	else if (dir == 2) {
+		if (r + 1 <= rows - 1) {
+			tell = create_walls(pawn);
+			if (tell == 1) {
+				pawn = grid_arr[c][--r];
+			}
+			else {
+				pawn = grid_arr[c][++r];
+			}
+		}
+	}
+	else if (dir == 3) {
+		if (r - 1 >= 0) {
+			tell = create_walls(pawn);
+			if (tell == 1) {
+				pawn = grid_arr[c][++r];
+			}
+			else {
+				pawn = grid_arr[c][--r];
+			}
+		}
+	}
+	cout << "Current Location: " << c << " X " << r << "    Current State: " << state << endl;
+	return pawn;
 
 }
 
@@ -104,20 +128,20 @@ void Grid::rot() {
 		if (c < rand_column) {
 			tell = create_walls(pawn);
 			if (tell == 1) {
-				pawn = grid_arr[r][--c];
+				pawn = grid_arr[--c][r];
 			}
 			else {
-				pawn = grid_arr[r][++c];
+				pawn = grid_arr[++c][r];
 			}
 			
 		}
 		else if (c > rand_column) {
 			tell = create_walls(pawn);
 			if (tell == 1) {
-				pawn = grid_arr[r][++c];
+				pawn = grid_arr[++c][r];
 			}
 			else {
-				pawn = grid_arr[r][--c];
+				pawn = grid_arr[--c][r];
 			}
 		}
 		else if (c == rand_column) {
@@ -129,19 +153,19 @@ void Grid::rot() {
 		if (r < rand_row) {
 			tell = create_walls(pawn);
 			if (tell == 1) {
-				pawn = grid_arr[--r][c];
+				pawn = grid_arr[c][--r];
 			}
 			else {
-				pawn = grid_arr[++r][c];
+				pawn = grid_arr[c][++r];
 			}
 	}
 		else if (r > rand_row) {
 			tell = create_walls(pawn);
 			if (tell == 1) {
-				pawn = grid_arr[r][--c];
+				pawn = grid_arr[c][--r];
 			}
 			else {
-				pawn = grid_arr[r][++c];
+				pawn = grid_arr[c][++r];
 			}
 	}
 		else if (r == rand_row) {
@@ -171,7 +195,7 @@ public:
 	double **Q;
 	double alpha = 0.1;
 	double epsilon = 0.1;
-	double gamma = 0.4;
+	double gamma = 0.9;
 	int size = 225;
 	int response = 0;
 	int state = 0;
@@ -193,6 +217,7 @@ public:
 	int rand_action();
 	int decide();
 	int setQ_max();
+	void TestB();
 };
 
 Agent::Agent(Grid*grid) {
@@ -225,9 +250,9 @@ void Agent::action() {
 		new_state = world->update(state, movement);
 		new_Reward = world->reward(new_state);
 		update_Q(movement);
+
 		if (new_state == world->goal) {
-			cout << "The computer has successfully located the goal. Run away!\n";
-			state = new_state = new_Reward = response = 0;
+			TestB();
 			break;
 		}
 	}
@@ -269,6 +294,13 @@ int Agent::greedy_action(double *row) {
 	return max[rand() % max.size()];
 }
 
+void Agent::TestB() {
+	if (new_state == world->goal) {
+		assert(new_state == world->goal);
+		cout << "The computer has successfully located the goal. Run away!\n";
+		state = new_state = new_Reward = response = 0;
+	}
+}
 
 int main()
 {
@@ -284,9 +316,10 @@ int main()
 	if (user == 1) {
 		Fidget.rot();
 	}
-	//else if (user == 2) {
-		//Luna.action();
-	//}
+	else if (user == 2) {
+		Luna.setQ();
+		Luna.action();
+	}
 
 	return 0;
 }
