@@ -14,7 +14,7 @@
 
 using namespace std;
 
-class Human {
+class Grid {
 public:
 	int **grid_arr;
 	int columns = 13;
@@ -30,13 +30,15 @@ public:
 
 	void set_up_array();
 	void create_grid();
-	void move();
+	int update(int,int);
 	void rot();
 	void drawing();
-	void create_walls();
+	int create_walls(int);
+	int reward(int);
+	void TestA(int, int, int, int);
 };
 
-void Human::set_up_array() {  //creates a double pointer array. This will be the "grid".
+void Grid::set_up_array() {  //creates a double pointer array. This will be the "grid".
 	grid_arr = new int*[columns]();
 	int count = 0;
 	for (int i = 0; i < columns; i++) {
@@ -49,7 +51,7 @@ void Human::set_up_array() {  //creates a double pointer array. This will be the
 	}
 }
 
-void Human::create_grid() {
+void Grid::create_grid() {
 	pawn = grid_arr[c][r];
 	goal = grid_arr[rand_column][rand_row];
 
@@ -58,93 +60,17 @@ void Human::create_grid() {
 	}
 }
 
-void Human::create_walls() {
-
-}
-
-void Human::move() {
-	cout << "Grid Size: " << columns << "X" << rows << endl;
-	cout << "Pawn = " << c << "X" << r << "\nGoal = " << rand_column << "X" << rand_row << endl;
-	cout << "Instructions: " << "Use numbers 1, 2, 3, 4 for right, left, down, and up. Respectively." << endl;
-	while (pawn != goal) {
-
-		cin >> movement;
-		cout << endl;
-
-		switch (movement) {
-		case 1:
-			if (c + 1 <= columns - 1) {
-				pawn = grid_arr[++c][r];
-
-				/*code for 3d graph
-				for (int i = 1; i <= columns; i++)
-				{
-				for (int j = 1; j <= rows; j++)
-				{
-				if (i == c && j == r)
-				{
-				cout << " A ";
-				}
-				else if (i == rand_column && j == rand_row)
-				{
-				cout << " F ";
-				}
-				else
-				cout << " + ";
-				}
-				cout << endl;
-				}
-				*/
-
-				cout << "Current Postion: " << c << "X" << r << endl;
-			}
-			else {
-				cout << "You hit a wall, choose a different move." << endl;
-			}
-			
-			break;
-		case 2:
-			if (c - 1 >= 0) {
-				pawn = grid_arr[--c][r];
-				cout << "Current Postion: " << c << "X" << r << endl;
-			}
-			else {
-				cout << "You hit a wall, choose a different move." << endl;
-			}
-			
-			break;
-		case 3:
-			if (r + 1 <= rows - 1) {
-				pawn = grid_arr[c][++r];
-				cout << "Current Postion: " << c << "X" << r << endl;
-			}
-			else {
-				cout << "You hit a wall, choose a different move." << endl;
-			}
-			
-			break;
-		case 4:
-			if (r - 1 >= 0) {
-				pawn = grid_arr[c][--r];
-				cout << "Current Postion: " << c << "X" << r << endl;
-			}
-			else {
-				cout << "You hit a wall, choose a different move." << endl;
-			}
-			
-			break;
-		}
-		if (pawn == goal) {
-			cout << "You have reached the goal. Yay!" << endl;
-			break;
-		}
-
+int Grid::create_walls(int pawn) {
+	int tell = 0;
+	int wall1 = grid_arr[rand_column - 1][rand_row];
+	int wall2 = grid_arr[rand_column][rand_row - 1];
+	if (pawn == wall1 || pawn == wall2) {
+		tell = 1;
 	}
+	return tell;
 }
 
-void Human::rot() {
-	cout << "The goal was: " << rand_column << "X" << rand_row << endl;
-	while (1) {
+int Grid::update(int state, int movement) {
 		if (c < rand_column) {
 			pawn = grid_arr[r][++c];
 		}
@@ -153,41 +79,214 @@ void Human::rot() {
 		}
 		else if (c == rand_column) {
 			cout << "Goal column has been reached." << endl;
+			
+		}
+
+		if (r < rand_row) {
+			pawn = grid_arr[++r][c];
+			
+		}
+		else if (r > rand_row) {
+			pawn = grid_arr[--r][c];
+		}
+		else if (r == rand_row) {
+			cout << "Goal row has been reached." << endl;
+			
+	}
+		return pawn;
+
+}
+
+void Grid::rot() {
+	int tell = 0;
+	cout << "The goal was: " << rand_column << "X" << rand_row << endl;
+	while (1) {
+		if (c < rand_column) {
+			tell = create_walls(pawn);
+			if (tell == 1) {
+				pawn = grid_arr[r][--c];
+			}
+			else {
+				pawn = grid_arr[r][++c];
+			}
+			
+		}
+		else if (c > rand_column) {
+			tell = create_walls(pawn);
+			if (tell == 1) {
+				pawn = grid_arr[r][++c];
+			}
+			else {
+				pawn = grid_arr[r][--c];
+			}
+		}
+		else if (c == rand_column) {
+			cout << "Goal column has been reached." << endl;
 			break;
 		}
 	}
 	while (1) {
 		if (r < rand_row) {
-			pawn = grid_arr[++r][c];
+			tell = create_walls(pawn);
+			if (tell == 1) {
+				pawn = grid_arr[--r][c];
+			}
+			else {
+				pawn = grid_arr[++r][c];
+			}
 	}
 		else if (r > rand_row) {
-			pawn = grid_arr[--r][c];
+			tell = create_walls(pawn);
+			if (tell == 1) {
+				pawn = grid_arr[r][--c];
+			}
+			else {
+				pawn = grid_arr[r][++c];
+			}
 	}
 		else if (r == rand_row) {
-			cout << "Goal row has been reached.";
+			cout << "Goal row has been reached." << endl;
 			break;
 	}
+		TestA(c, r, rand_column, rand_row);
+}	
 }
-	cout << "The pawn has reached: " << c << "X" << r << endl;
-	assert(c == rand_column && r == rand_row);
+
+int Grid::reward(int new_pawn) {
+	int R = -1; //sets the default reward
+	if (new_pawn == goal) {
+		R = R + 100;
+		new_pawn = pawn = c = r = 0;
+
+	}
+	return R;
 }
+
+void Grid::TestA(int c, int r, int rand_col, int rand_r) {
+	assert(c == rand_col && r == rand_r);
+}
+
+class Agent {
+public:
+	double **Q;
+	double alpha = 0.1;
+	double epsilon = 0.1;
+	double gamma = 0.4;
+	int size = 225;
+	int response = 0;
+	int state = 0;
+	int new_state = 0;
+	double new_Reward = 0;
+	int left = 0;
+	int right = 1;
+	int up = 2;
+	int down = 3;
+	int Q_max = 0;
+	double Q_calc = 0.0;
+	Grid *world;
+
+	Agent(Grid*);
+	void setQ(); //create the 2-D array for the Q table. states X 4
+	void update_Q(int); //stores and updates the Q values for each state
+	void action();
+	int greedy_action(double *row);
+	int rand_action();
+	int decide();
+	int setQ_max();
+};
+
+Agent::Agent(Grid*grid) {
+	world = grid;
+}
+
+void Agent::setQ() {  //creates a double pointer array. This will be the q_table array
+	Q = new double*[size]();
+	int count = 0;
+	for (int i = 0; i < size; i++) {
+		Q[i] = new double[4]();
+	}
+}
+
+int Agent::setQ_max() {
+	Q_max = Q[new_state][greedy_action(Q[new_state])];
+	return Q_max;
+}
+
+void Agent::update_Q(int movement) {
+	Q_max = setQ_max();
+	Q[state][movement] += alpha * (new_Reward + gamma*Q_max - Q[state][movement]);
+	state = new_state;
+}
+
+void Agent::action() {
+	int movement;
+	while (1) {
+		movement = decide();
+		new_state = world->update(state, movement);
+		new_Reward = world->reward(new_state);
+		update_Q(movement);
+		if (new_state == world->goal) {
+			cout << "The computer has successfully located the goal. Run away!\n";
+			state = new_state = new_Reward = response = 0;
+			break;
+		}
+	}
+}
+
+int Agent::decide() {
+	double x = (double)rand() / RAND_MAX;
+
+	if (x < epsilon) {
+
+		response = rand_action(); //create a random action thingy
+	}
+	else {
+
+		response = greedy_action(Q[state]); //create a greedy action thingy
+	}
+
+	return response;
+}
+
+int Agent::rand_action() {
+	int x = rand() % 4;
+	return x;
+}
+
+int Agent::greedy_action(double *row) {
+	vector<int> max;
+	max.push_back(0);
+
+	for (int i = 1; i < 4; i++) {
+		if (row[max[0]] < row[i]) {
+			max.clear();
+			max.push_back(i);
+		}
+		else if (row[max[0]] == row[i]) {
+			max.push_back(i);
+		}
+	}
+	return max[rand() % max.size()];
+}
+
 
 int main()
 {
 	srand(time(NULL));
-	Human Fidget;
+	Grid Fidget;
+	Agent Luna(&Fidget);
 	Fidget.set_up_array();
 	Fidget.create_grid();
 	int user;
-	cout << "Enter 1 for Human Controller, Enter 2 for Rule-of-Thumb\n";
+	cout << "Enter 1 for Rule-of-Thumb, Enter 2 for Q-Learner.\n";
 	cin >> user;
 	cout << endl;
 	if (user == 1) {
-		Fidget.move();
-	}
-	else {
 		Fidget.rot();
 	}
+	//else if (user == 2) {
+		//Luna.action();
+	//}
 
 	return 0;
 }
