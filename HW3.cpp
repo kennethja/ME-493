@@ -1,5 +1,6 @@
-// HW3.cpp : Defines the entry point for the console application.
-//
+// Kenneth Allison
+// ME 493 - HW3
+// 3/13/2017
 
 #include "stdafx.h";
 #include "iostream";
