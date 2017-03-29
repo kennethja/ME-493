@@ -25,8 +25,8 @@ public:
 class Policy {
 public:
 	vector<City> town;
-	
-
+	double fitness;
+	double total_distance_traveled;
 };
 
 class Agent {
@@ -44,7 +44,13 @@ public:
 
 	void init();
 	void create_city_locations();
-	void get_distance_to_cities();
+	void calc_distance_to_cities();
+    void calc_total_distance();
+	void fitness();
+	void down_select();
+	void mutate();
+	void replicate();
+	void restart();
 };
 
 void EA::init() {
@@ -59,7 +65,7 @@ void EA::init() {
 		}
 	}
 	create_city_locations();
-	get_distance_to_cities();
+	calc_distance_to_cities();
 	for (int p = 0; p < pop_size; p++) {
 		random_shuffle(indiv.at(0).path.at(p).town.begin() + 1, indiv.at(0).path.at(p).town.end());
 	}
@@ -94,6 +100,14 @@ void EA::init() {
 			cout << endl;
 		}
 	}
+
+	calc_total_distance();
+	fitness();
+
+	for (int p = 0; p < pop_size; p++) {
+		cout << "Path  " << p << "\t" << "Fitness  " << indiv.at(0).path.at(p).fitness << "\t" << endl << endl;
+	}
+
 	cout << endl;
 }
 
@@ -112,7 +126,7 @@ void EA::create_city_locations() {
 	}
 }
 
-void EA::get_distance_to_cities() {
+void EA::calc_distance_to_cities() {
 	for (int c = 0; c < num_cities; c++) {
 		for (int cc = 0; cc < num_cities; cc++) {
 			double dist = 0;
@@ -132,6 +146,32 @@ void EA::get_distance_to_cities() {
 			}
 		}
 	}
+}
+
+void EA::fitness() {
+		for (int p = 0; p < pop_size; p++){
+			indiv.at(0).path.at(0).fitness = 0;
+			indiv.at(0).path.at(p).fitness = indiv.at(0).path.at(p).total_distance_traveled;
+	}
+}
+
+void EA::calc_total_distance() {
+	for (int p = 0; p < pop_size; p++) {
+		double hold = 0;
+		for (int c = 0; c < indiv.at(0).path.at(p).town.size() - 1; c++) {
+			hold += indiv.at(0).path.at(p).town.at(c).distance_to_cities.at(indiv.at(0).path.at(p).town.at(c + 1).location);
+		}
+		indiv.at(0).path.at(p).total_distance_traveled = hold;
+	}
+}
+
+void EA::down_select() {
+	//picks two random paths and compares the fitness of both. Looks for the better fitness.
+	int first = rand() % indiv.at(0).path.size();
+	int second = rand() % indiv.at(0).path.size();
+	while (first == second) {
+		second = rand() % indiv.at(0).path.size();
+	}
 	
 }
 
@@ -139,7 +179,6 @@ int main(){
 srand(time(NULL));
 EA Luna;
 Luna.init();
-
 
 return 0;
 }
