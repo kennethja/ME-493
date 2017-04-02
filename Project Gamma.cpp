@@ -1,5 +1,6 @@
-// Project Gamma.cpp : Defines the entry point for the console application.
-//
+//Kenneth Allison
+//Project Gamma
+//Recieved help from Scott Fourer during the review session 3/16/2017
 
 #include "stdafx.h";
 #include "iostream";
@@ -39,16 +40,19 @@ public:
 	vector<Agent> indiv;
 	int x_max = 10;
 	int y_max = 10;
-	int pop_size = 2;
-	int num_cities = 4;
+	int pop_size = 4;
+	int num_cities = 10;
+	int num_swaps = 2;
+	int half_pop = pop_size / 2; //creates half of the population for binary tournament
 
 	void init();
 	void create_city_locations();
 	void calc_distance_to_cities();
     void calc_total_distance();
 	void fitness();
+	int binary_tournament();
 	void down_select();
-	void mutate();
+	void mutate(Policy &M);
 	void replicate();
 	void restart();
 };
@@ -165,14 +169,68 @@ void EA::calc_total_distance() {
 	}
 }
 
-void EA::down_select() {
+int EA::binary_tournament() {
 	//picks two random paths and compares the fitness of both. Looks for the better fitness.
 	int first = rand() % indiv.at(0).path.size();
 	int second = rand() % indiv.at(0).path.size();
+	int die;
 	while (first == second) {
 		second = rand() % indiv.at(0).path.size();
 	}
-	
+	if (indiv.at(0).path.at(first).fitness < indiv.at(0).path.at(first).fitness) {
+		die = first;
+	}
+	else {
+		die = second;
+	}
+	return die;
+}
+
+void EA::down_select() {
+	for (int k = 0; k < half_pop; k++) {
+		int die = 0;
+		die = binary_tournament();
+		indiv.at(0).path.erase(indiv.at(0).path.begin() + die);
+
+	}
+}
+
+void EA::mutate(Policy &p) {
+	Policy mutation;
+	mutation = p;
+
+	for (int i = 0; i < num_swaps; i++) {
+		double j = rand() / RAND_MAX;
+		if (j <= 0.5) {
+			int city1 = rand() % indiv.at(0).path.at(0).town.size();
+			if (city1 == 0) {
+				city1 = rand() % indiv.at(0).path.at(0).town.size();
+			}
+			int city2 = rand() % indiv.at(0).path.at(0).town.size();
+			if (city2 == 0 || city1 == city2) {
+				city2 = rand() % indiv.at(0).path.at(0).town.size();
+			}
+
+			swap(p.town.at(city1), p.town.at(city2));
+		}
+	}
+}
+
+void EA::replicate() {
+
+	for (int i = 0; i < half_pop; i++) {
+		Policy p;
+		int locate = rand() % indiv.at(0).path.size();
+		p = indiv.at(0).path.at(locate);
+		mutate(p);
+		indiv.at(0).path.push_back(p);
+	}
+}
+
+void EA::restart() {
+	for (int p = 0; p < pop_size; p++) {
+		random_shuffle(indiv.at(0).path.at(p).town.begin() + 1, indiv.at(0).path.at(0).town.end());
+	}
 }
 
 int main(){
