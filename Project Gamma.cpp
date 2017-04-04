@@ -1,6 +1,6 @@
 //Kenneth Allison
 //Project Gamma
-//Recieved help from Scott Fourer during the review session 3/16/2017
+//Recieved help from Scott Fourer during the review session 3/16/2017.
 
 #include "stdafx.h";
 #include "iostream";
@@ -9,8 +9,11 @@
 #include "random";
 #include "time.h";
 #include "vector";
+#include "iomanip";
 #include "fstream";
+#include "cassert";
 #include "cmath";
+#include "ctime";
 #include "limits";
 #include "algorithm";
 using namespace std;
@@ -38,12 +41,18 @@ public:
 class EA {
 public:
 	vector<Agent> indiv;
-	int x_max = 10;
-	int y_max = 10;
-	int pop_size = 4;
-	int num_cities = 10;
+	int x_max = 100;
+	int y_max = 100;
+	int pop_size = 100;
+	int num_cities = 25;
 	int num_swaps = 2;
+	int generations = 100;
 	int half_pop = pop_size / 2; //creates half of the population for binary tournament
+	double start_fit;
+	double end_fit;
+	vector<double> fitness_min;
+	vector<double> fitness_max;
+	vector<double> fitness_average;
 
 	void init();
 	void create_city_locations();
@@ -55,7 +64,33 @@ public:
 	void mutate(Policy &M);
 	void replicate();
 	void restart();
+	struct sort_fitness;
+	void calculate();
+
+	void LR4(int,int);
+	void LR5();
+	void LR6();
+	void LR7();
+	void LR8();
+
+	void MR1();
+	void MR2(int);
+	void MR3();
+	void MR4();
+	void MR5();
+
+	void HR1();
+	void HR2();
+	void HR3();
+	void HR4();
 };
+
+struct EA::sort_fitness {
+	inline bool operator() (const Policy& one, const Policy& two) {
+		return (one.fitness < two.fitness);
+	}
+};
+
 
 void EA::init() {
 	Agent A;
@@ -73,7 +108,7 @@ void EA::init() {
 	for (int p = 0; p < pop_size; p++) {
 		random_shuffle(indiv.at(0).path.at(p).town.begin() + 1, indiv.at(0).path.at(p).town.end());
 	}
-
+	/*
 	for (int p = 0; p < pop_size; p++){
 		cout << "path" << "\t" << p << endl;
 		for (int c = 0; c < num_cities; c++) {
@@ -104,7 +139,7 @@ void EA::init() {
 			cout << endl;
 		}
 	}
-
+	*/
 	calc_total_distance();
 	fitness();
 
@@ -156,7 +191,12 @@ void EA::fitness() {
 		for (int p = 0; p < pop_size; p++){
 			indiv.at(0).path.at(0).fitness = 0;
 			indiv.at(0).path.at(p).fitness = indiv.at(0).path.at(p).total_distance_traveled;
+			MR2(p);
 	}
+}
+
+void EA::MR2(int p) {
+	assert(indiv.at(0).path.at(p).fitness = indiv.at(0).path.at(p).total_distance_traveled);
 }
 
 void EA::calc_total_distance() {
@@ -209,15 +249,22 @@ void EA::mutate(Policy &p) {
 			int city2 = rand() % indiv.at(0).path.at(0).town.size();
 			if (city2 == 0 || city1 == city2) {
 				city2 = rand() % indiv.at(0).path.at(0).town.size();
+				LR4(city1, city2);
 			}
-
+			
 			swap(p.town.at(city1), p.town.at(city2));
 		}
+		
 	}
 }
 
-void EA::replicate() {
+void EA::LR4(int city1, int city2) {
+	int City1 = 1;
+	int City2 = 2;
+	assert(City1 != City2);
+}
 
+void EA::replicate() {
 	for (int i = 0; i < half_pop; i++) {
 		Policy p;
 		int locate = rand() % indiv.at(0).path.size();
@@ -229,15 +276,90 @@ void EA::replicate() {
 
 void EA::restart() {
 	for (int p = 0; p < pop_size; p++) {
-		random_shuffle(indiv.at(0).path.at(p).town.begin() + 1, indiv.at(0).path.at(0).town.end());
+		random_shuffle(indiv.at(0).path.at(p).town.begin() + 1, indiv.at(0).path.at(p).town.end());
 	}
 }
 
+void EA::calculate() {
+	fitness_min.push_back(indiv.at(0).path.at(0).fitness);
+	double mean_sum = 0.00;
+	for (int p = 0; p < pop_size; p++) {
+		mean_sum += indiv.at(0).path.at(p).fitness;
+	}
+	fitness_max.push_back(indiv.at(0).path.at(pop_size - 1).fitness);
+	fitness_average.push_back(mean_sum / pop_size);
+}
+void EA::MR1() {
+	init();
+}
 int main(){
-srand(time(NULL));
-EA Luna;
-Luna.init();
+srand(time(NULL)); //for rand()
+EA Luna; //calling class EA as all evolutionary algorithim functions are within this class
 
+if (remove("Minimum_Fitness.txt") != 0)
+perror("Error deleting file");
+else
+puts("File successfully deleted");
+
+if (remove("Maximum_Fitness.txt") != 0)
+perror("Error deleting file");
+else
+puts("File successfully deleted");
+
+if (remove("Average_Fitness.txt") != 0)
+perror("Error deleting file");
+else
+puts("File successfully deleted");
+
+cout << endl;
+
+Luna.MR1(); //initializes the population of policies.  Policies are represented using nested vectors
+
+for (int runs = 0; runs < 30; runs++) {
+	cout << "Statistical Run" << "\t" << runs << endl;
+	if (runs > 0) {
+		Luna.fitness_min.clear();
+		Luna.fitness_max.clear();
+		Luna.fitness_average.clear();
+		Luna.restart();
+	}
+	for (int i = 0; i < Luna.generations; i++) {
+		if (i < Luna.generations - 1) {
+			Luna.calc_total_distance(); //calculates total distance
+			Luna.fitness(); //calcuates total fitness, which in this case, is total distance. Fitness can be something other than distance if so desired
+	
+			Luna.calculate();
+			Luna.down_select();
+			Luna.replicate();
+		}
+		else if (i == Luna.generations - 1) {
+			Luna.calc_total_distance();
+			Luna.fitness();
+			Luna.calculate();
+		}
+}
+	
+	ofstream File1;
+	ofstream File2;
+	ofstream File3;
+
+	File1.open("Minumum_Fitness.txt", ios_base::app);
+	File2.open("Maxumum_Fitness.txt", ios_base::app);
+	File3.open("Average_Fitness.txt", ios_base::app);
+	
+	for (int i = 0; i < Luna.generations; i++) {
+		File1 << Luna.fitness_min.at(i) << "\t" << endl;
+	}
+	File1.close();
+	for (int i = 0; i < Luna.generations; i++) {
+		File2 << Luna.fitness_max.at(i) << "\t" << endl;
+	}
+	File2.close();
+	for (int i = 0; i < Luna.generations; i++) {
+		File3 << Luna.fitness_average.at(i) << "\t" << endl;
+	}
+	File3.close();
+}
 return 0;
 }
 
