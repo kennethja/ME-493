@@ -45,8 +45,8 @@ public:
 	int y_max = 100;
 	int pop_size = 100;
 	int num_cities = 25;
-	int num_swaps = 2;
-	int generations = 100;
+	int num_swaps = 3;
+	int generations = 400;
 	int half_pop = pop_size / 2; //creates half of the population for binary tournament
 	double start_fit;
 	double end_fit;
@@ -64,7 +64,7 @@ public:
 	void mutate(Policy &M);
 	void replicate();
 	void restart();
-	struct sort_fitness;
+	//struct sort_fitness;
 	void calculate();
 
 	void LR4(int,int);
@@ -84,13 +84,6 @@ public:
 	void HR3();
 	void HR4();
 };
-
-struct EA::sort_fitness {
-	inline bool operator() (const Policy& one, const Policy& two) {
-		return (one.fitness < two.fitness);
-	}
-};
-
 
 void EA::init() {
 	Agent A;
@@ -143,9 +136,9 @@ void EA::init() {
 	calc_total_distance();
 	fitness();
 
-	for (int p = 0; p < pop_size; p++) {
-		cout << "Path  " << p << "\t" << "Fitness  " << indiv.at(0).path.at(p).fitness << "\t" << endl << endl;
-	}
+	//for (int p = 0; p < pop_size; p++) {
+		//cout << "Path  " << p << "\t" << "Fitness  " << indiv.at(0).path.at(p).fitness << "\t" << endl << endl;
+	//}
 
 	cout << endl;
 }
@@ -189,7 +182,7 @@ void EA::calc_distance_to_cities() {
 
 void EA::fitness() {
 		for (int p = 0; p < pop_size; p++){
-			indiv.at(0).path.at(0).fitness = 0;
+			indiv.at(0).path.at(p).fitness = 0;
 			indiv.at(0).path.at(p).fitness = indiv.at(0).path.at(p).total_distance_traveled;
 			MR2(p);
 	}
@@ -200,6 +193,7 @@ void EA::MR2(int p) {
 }
 
 void EA::calc_total_distance() {
+	//cout << indiv.at(0).path.size() << endl;
 	for (int p = 0; p < pop_size; p++) {
 		double hold = 0;
 		for (int c = 0; c < indiv.at(0).path.at(p).town.size() - 1; c++) {
@@ -217,11 +211,11 @@ int EA::binary_tournament() {
 	while (first == second) {
 		second = rand() % indiv.at(0).path.size();
 	}
-	if (indiv.at(0).path.at(first).fitness < indiv.at(0).path.at(first).fitness) {
-		die = first;
+	if (indiv.at(0).path.at(first).fitness < indiv.at(0).path.at(second).fitness) {
+		die = second;
 	}
 	else {
-		die = second;
+		die = first;
 	}
 	return die;
 }
@@ -280,27 +274,45 @@ void EA::restart() {
 	}
 }
 
+//struct EA::sort_fitness {
+	//inline bool operator() (const Policy& one, const Policy& two) {
+		//return (one.fitness < two.fitness);
+	//}
+//};
+
 void EA::calculate() {
+	for (int p = 1; p < pop_size; p++) {
+		if (indiv.at(0).path.at(p).fitness < indiv.at(0).path.at(0).fitness) {
+			{
+				swap(indiv.at(0).path.at(p), indiv.at(0).path.at(0));
+			}
+		}
+	}
+	//cout << indiv.at(0).path.at(0).fitness << endl;
 	fitness_min.push_back(indiv.at(0).path.at(0).fitness);
+	/*
 	double mean_sum = 0.00;
+
 	for (int p = 0; p < pop_size; p++) {
 		mean_sum += indiv.at(0).path.at(p).fitness;
 	}
 	fitness_max.push_back(indiv.at(0).path.at(pop_size - 1).fitness);
 	fitness_average.push_back(mean_sum / pop_size);
+	*/
 }
+
 void EA::MR1() {
 	init();
 }
+
+
 int main(){
 srand(time(NULL)); //for rand()
 EA Luna; //calling class EA as all evolutionary algorithim functions are within this class
 
-if (remove("Minimum_Fitness.txt") != 0)
-perror("Error deleting file");
-else
-puts("File successfully deleted");
+Luna.MR1();
 
+/*
 if (remove("Maximum_Fitness.txt") != 0)
 perror("Error deleting file");
 else
@@ -310,17 +322,16 @@ if (remove("Average_Fitness.txt") != 0)
 perror("Error deleting file");
 else
 puts("File successfully deleted");
-
+*/
 cout << endl;
 
-Luna.MR1(); //initializes the population of policies.  Policies are represented using nested vectors
 
-for (int runs = 0; runs < 30; runs++) {
+for (int runs = 0; runs < 1; runs++) {
 	cout << "Statistical Run" << "\t" << runs << endl;
 	if (runs > 0) {
 		Luna.fitness_min.clear();
-		Luna.fitness_max.clear();
-		Luna.fitness_average.clear();
+		//Luna.fitness_max.clear();
+		//Luna.fitness_average.clear();
 		Luna.restart();
 	}
 	for (int i = 0; i < Luna.generations; i++) {
@@ -328,6 +339,9 @@ for (int runs = 0; runs < 30; runs++) {
 			Luna.calc_total_distance(); //calculates total distance
 			Luna.fitness(); //calcuates total fitness, which in this case, is total distance. Fitness can be something other than distance if so desired
 	
+			//Luna.sort_fitness();
+			//sort(Luna.indiv.at(0).path.begin(), Luna.indiv.at(0).path.end(), Luna.sort_fitness());
+
 			Luna.calculate();
 			Luna.down_select();
 			Luna.replicate();
@@ -340,26 +354,28 @@ for (int runs = 0; runs < 30; runs++) {
 }
 	
 	ofstream File1;
-	ofstream File2;
-	ofstream File3;
+	//ofstream File2;
+	//ofstream File3;
 
 	File1.open("Minumum_Fitness.txt", ios_base::app);
-	File2.open("Maxumum_Fitness.txt", ios_base::app);
-	File3.open("Average_Fitness.txt", ios_base::app);
+	//File2.open("Maxumum_Fitness.txt", ios_base::app);
+	//File3.open("Average_Fitness.txt", ios_base::app);
 	
 	for (int i = 0; i < Luna.generations; i++) {
 		File1 << Luna.fitness_min.at(i) << "\t" << endl;
 	}
+	File1 << endl;
 	File1.close();
-	for (int i = 0; i < Luna.generations; i++) {
-		File2 << Luna.fitness_max.at(i) << "\t" << endl;
-	}
-	File2.close();
-	for (int i = 0; i < Luna.generations; i++) {
-		File3 << Luna.fitness_average.at(i) << "\t" << endl;
-	}
-	File3.close();
+	//for (int i = 0; i < Luna.generations; i++) {
+		//File2 << Luna.fitness_max.at(i) << "\t" << endl;
+	//}
+	//File2.close();
+	//for (int i = 0; i < Luna.generations; i++) {
+		//File3 << Luna.fitness_average.at(i) << "\t" << endl;
+	//}
+	//File3.close();
 }
+
 return 0;
 }
 
