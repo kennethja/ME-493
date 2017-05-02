@@ -18,6 +18,7 @@
 #include "ctime";
 #include "limits";
 #include "algorithm";
+#include "LY_NN.h";
 
 using namespace std;
 
@@ -35,12 +36,14 @@ public:
 	double new_theta;
 	double new_omega;
 	double new_u;
-	double goal_x;
-	double goal_2x;
-	double goal_3x;
-	double goal_3y;
-	double goal_2y;
-	double goal_y;
+	double goal_leftx;
+	double goal_lefty;
+	double goal_rightx;
+	double goal_righty;
+	double goal_topx;
+	double goal_topy;
+	double goal_botx;
+	double goal_boty;
 	double goal_range;
 	double d2g;
 	int inmap = 0;
@@ -62,7 +65,8 @@ public:
 	int num_inputs = 1;
 	int num_hidden = 3;
 	int num_outputs = 1;
-	int num_weights = 2;
+	int num_weights = 3;
+	int num_swaps = 3;
 	double v = 3.0; //distance per second
 	double dt = 0.2; //seconds
 	double T = 5.0;
@@ -71,6 +75,7 @@ public:
 	double x_max = 100.0;
 	double y_max = 100.0;
 	double goal_angle = 0.0;
+	int generations = 50;
 	vector<Agent> indiv;
 	vector<double> lgoal;
 	vector<double> mgoal;
@@ -101,16 +106,17 @@ public:
 	double dt = 0.2;
 	double T = 5.0;
 	double max_time = 100.0;
+	double max_thrust = 0.0;
 
 	void Simulate(Policy *pP, double x_max, double y_max);
 	void Agent_Setup(Policy *pP);
 	void Display(Policy *pP, double time);
 	void check_map(Policy *pP, double x_max, double y_max);
+	int check_Goal(Policy* pP);
 	void calc_newx(Policy *pP);
 	void calc_newy(Policy *pP);
 	void calc_newtheta(Policy *pP);
 	void calc_newomega(Policy *pP);
-	void check_goal(Policy* pP, int tstep, vector<double> bgoal, vector<double> lgoal);
 	void output(Policy* pP, double time, int tstep);
 
 };
@@ -143,12 +149,14 @@ void EA::set_Agent() { //not sure if starting at random locations
 }
 
 void EA::set_Goal(Policy* pP) { //creating the goal as a line, not a point
-	indiv.at(0).pawn.at(0).goal_x = 75; //abs(((double)rand() / RAND_MAX)*x_max);
-	indiv.at(0).pawn.at(0).goal_2x = indiv.at(0).pawn.at(0).goal_x - 5;
-	indiv.at(0).pawn.at(0).goal_3x = indiv.at(0).pawn.at(0).goal_2x - 5;
-	indiv.at(0).pawn.at(0).goal_y = 75;//abs(((double)rand() / RAND_MAX)*y_max);
-	indiv.at(0).pawn.at(0).goal_2y = indiv.at(0).pawn.at(0).goal_y - 5;
-	indiv.at(0).pawn.at(0).goal_3y = indiv.at(0).pawn.at(0).goal_2y - 5;
+	indiv.at(0).pawn.at(0).goal_leftx = 75;
+	indiv.at(0).pawn.at(0).goal_lefty = 75;
+	indiv.at(0).pawn.at(0).goal_rightx = 85;
+	indiv.at(0).pawn.at(0).goal_righty = 75;
+	indiv.at(0).pawn.at(0).goal_topx = 80;
+	indiv.at(0).pawn.at(0).goal_topy = 80;
+	indiv.at(0).pawn.at(0).goal_botx = 80;
+	indiv.at(0).pawn.at(0).goal_boty = 70;
 }
 
 void EA::evaluate() {
@@ -166,11 +174,13 @@ void EA::run_simulation() {
 }
 
 void EA::fitness() { //using the distance from the goal as fitness
+	int distance = 0;
+	int distance_sum = 0;
 	for (int p = 0; p < indiv.at(0).pawn.size(); p++) {
 		indiv.at(0).pawn.at(p).fitness = 0;
 	}
 	for (int p = 0; p < indiv.at(0).pawn.size(); p++) {
-
+		indiv.at(0).pawn.at(p).fitness = distance_sum;
 	}
 	cout << "Population Fitness" << endl;
 	for (int p = 0; p < indiv.at(0).pawn.size(); p++) {
@@ -213,18 +223,27 @@ void EA::mutate(Policy &M) {
 	for (int i = 0; i < num_swaps; i++) {
 		double j = rand() / RAND_MAX;
 		if (j <= 0.5) {
-			int city1 = rand() % indiv.at(0).path.at(0).town.size();
+			int city1 = rand() % indiv.at(0).pawn.size();
 			if (city1 == 0) {
-				city1 = rand() % indiv.at(0).path.at(0).town.size();
+				city1 = rand() % indiv.at(0).pawn.size();
 			}
-			int city2 = rand() % indiv.at(0).path.at(0).town.size();
+			int city2 = rand() % indiv.at(0).pawn.size();
 			if (city2 == 0 || city1 == city2) {
-				city2 = rand() % indiv.at(0).path.at(0).town.size();
-				LR4(city1, city2);
+				city2 = rand() % indiv.at(0).pawn.size();
 			}
-			swap(M.town.at(city1), p.town.at(city2));
+			swap(M.pawn.at(city1), M.pawn.at(city2));
 		}
 
+	}
+}
+
+void EA::replicate() {
+	for (int i = 0; i < half_pop; i++) {
+		Policy p;
+		int locate = rand() % indiv.at(0).pawn.size();
+		p = indiv.at(0).pawn.at(locate);
+		mutate(p);
+		indiv.at(0).pawn.push_back(p);
 	}
 }
 
@@ -235,7 +254,7 @@ void Simulator::Simulate(Policy *pP,double x_max,double y_max) {
 	while (time < max_time) {
 		if (time == 0) {
 			Agent_Setup(pP);
-			Calc_Goal_Distance(p);
+			//Calc_Goal_Distance(p);
 			Display(pP,time);
 			check_map(pP,x_max,y_max);
 		}
@@ -299,12 +318,28 @@ void Simulator::calc_newomega(Policy *pP) {
 	pP->new_omega = pP->omega + (pP->u - pP->omega)*dt/T;
 }
 
+int Simulator::check_Goal(Policy* pP) {
+	EA E;
+	if ((pP->x > 75) && (pP->x < 85) && (pP->y > 70) && (pP->y < 80)) {
+		return 1;
+	}
+	else 
+		return 0;
+	
+	}
+
 int main()
 {
 	srand(time(NULL));
+	Policy P;
 	EA E;
+	neural_network NN;
+	Simulator S;
+	NN.setup(2, 5, 1);
+
+	NN.set_in_min_max(-5, 105); /// Y
+	NN.set_in_min_max(-20, S.max_thrust);
 	E.init();
-	E.set_Weights();
 	for (int gen = 0; gen < E.gen_max; gen++) {
 		if (gen < E.gen_max - 1) {
 			E.set_Agent();
@@ -313,6 +348,19 @@ int main()
 		}
 	}
 
+	ofstream File1;
+	//ofstream File2;
+	//ofstream File3;
+
+	File1.open("Fitness.txt", ios_base::app);
+	//File2.open("Maxumum_Fitness.txt", ios_base::app);
+	//File3.open("Average_Fitness.txt", ios_base::app);
+
+	for (int i = 0; i < E.generations; i++) {
+		File1 << E.fitness.at(i) << "\t" << endl;
+	}
+	File1 << endl;
+	File1.close();
 
     return 0;
 }
