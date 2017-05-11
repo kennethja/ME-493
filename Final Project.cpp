@@ -1,7 +1,6 @@
 //Kenneth Allison
 //ME 493
-//Project Beta
-//Worked with Scott Fourer and Bryant Clouse
+//Final Project
 
 #include "stdafx.h";
 #include "iostream";
@@ -49,10 +48,9 @@ public:
 	void creategrid();
 	void creategrid1();
 	int update(int, int);
+	int update1(int, int);
 	int reward(int new_state);
-	void TestE(int, int);
-	void TestF(int);
-	void TestG();
+	int reward1(int new_state1);
 };
 
 void Grid::setgrid() {  //creates a double pointer array. This will be the "grid".
@@ -130,145 +128,50 @@ int Grid::update(int state, int dir) {
 	move_count++;
 	return pawn;
 }
+int Grid::update1(int state, int dir) {
+	if (dir == 0) {
+		if (c1 + 1 <= columns1 - 1) {
+			pawn1 = grid_arr1[++c1][r1];
+		}
+	}
+	else if (dir == 1) {
+		if (c1 - 1 >= 0) {
+			pawn1 = grid_arr1[--c1][r1];
+		}
+	}
+	else if (dir == 2) {
+		if (r1 + 1 <= rows1 - 1) {
+			pawn1 = grid_arr1[c1][++r1];
+		}
+	}
+	else if (dir == 3) {
+		if (r1 - 1 >= 0) {
+			pawn1 = grid_arr1[c1][--r1];
+		}
+	}
+	//cout << "Current Location: " << c << " X " << r << "    Current State: " << state << endl;
+	move_count++;
+	return pawn;
+}
 
 int Grid::reward(int new_pawn) {
 	int R = -1; //sets the default reward
 	if (new_pawn == goal) {
 		R = R + 100;
 		new_pawn = pawn = c = r = 0;
-		TestE(new_pawn, pawn);
 
 	}
 	return R;
 }
 
-//ensures that the agent(new_pawn) location on the grid is reset to zero 
-//once the goal is reached in the reward function.
-void Grid::TestE(int new_pawn, int pawn) {
-	assert(new_pawn == pawn == c == r);
-}
+int Grid::reward1(int new_pawn) {
+	int R = -1; //sets the default reward
+	if (new_pawn == goal1) {
+		R = R + 100;
+		new_pawn = pawn1 = c1 = r1 = 0;
 
-//ensures that the final number of moes the agent takes 
-//is within resonable bounds of the optimal number of steps
-void Grid::TestF(int j) {
-	int op = abs(rand_column - 0) + abs(rand_row - 0);
-	if (move_count <= op*1.5) {
-		counter += 1;
 	}
-	if (j = 499) {
-		assert(counter >= 0.75 * 30);
-	}
-}
-
-//TestG creates a second state represantation that could be subsituted for the original state representation
-void Grid::TestG() {
-	if (c < rand_column && r < rand_row) {
-		testGstate = 1;
-	}
-	else if (c == rand_column && r < rand_row) {
-		testGstate = 2;
-	}
-	else if (c > rand_column && r < rand_row) {
-		testGstate = 3;
-	}
-	else if (c < rand_column && r == rand_row) {
-		testGstate = 4;
-	}
-	else if (c == rand_column && r == rand_row) {
-		testGstate = 5;
-	}
-	else if (c > rand_column && r == rand_row) {
-		testGstate = 6;
-	}
-	else if (c < rand_column && r > rand_row) {
-		testGstate = 7;
-	}
-	else if (c == rand_column && r > rand_row) {
-		testGstate = 8;
-	}
-	else if (c > rand_column && r > rand_row) {
-		testGstate = 9;
-	}
-	else {
-		c = r = 0;
-	}
-
-	int decide;
-	if (testGstate == 1) {
-		decide = rand() % 2;
-		if (decide <= 1) {
-			pawn = grid_arr[++r][c];
-		}
-		else {
-			pawn = grid_arr[r][++c];
-		}
-	}
-	else if (testGstate == 2) {
-		decide = rand() % 2;
-		if (decide <= 1.5) {
-			pawn = grid_arr[++r][c];
-		}
-		else {
-			pawn = grid_arr[r][++c];
-		}
-	}
-	else if (testGstate == 3) {
-		decide = rand() % 2;
-		if (decide <= 1) {
-			pawn = grid_arr[++r][c];
-		}
-		else {
-			pawn = grid_arr[r][--c];
-		}
-	}
-	else if (testGstate == 4) {
-		decide = rand() % 2;
-		if (decide <= 1.5) {
-			pawn = grid_arr[r][++c];
-		}
-		else {
-			pawn = grid_arr[++r][c];
-		}
-	}
-	else if (testGstate == 5) {
-		pawn = grid_arr[r][c];
-	}
-	else if (testGstate == 6) {
-		decide = rand() % 2;
-		if (decide <= 1.5) {
-			pawn = grid_arr[r][--c];
-		}
-		else {
-			pawn = grid_arr[++r][c];
-		}
-	}
-	else if (testGstate == 7) {
-		decide = rand() % 2;
-		if (decide <= 1) {
-			pawn = grid_arr[--r][c];
-		}
-		else {
-			pawn = grid_arr[r][++c];
-		}
-	}
-	else if (testGstate == 8) {
-		decide = rand() % 2;
-		if (decide <= 1.5) {
-			pawn = grid_arr[--r][c];
-		}
-		else {
-			pawn = grid_arr[r][++c];
-		}
-	}
-	else if (testGstate == 9) {
-		decide = rand() % 2;
-		if (decide <= 1) {
-			pawn = grid_arr[--r][c];
-		}
-		else {
-			pawn = grid_arr[r][--c];
-		}
-	}
+	return R;
 }
 
 
